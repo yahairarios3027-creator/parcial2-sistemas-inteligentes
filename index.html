@@ -177,26 +177,32 @@
     const SERVIDOR = "https://catalyst-unaired-boxcar.ngrok-free.dev";
 
     const PREGUNTAS = [
-      { key: "Gender", label: "Género (Gender)", options: ["Boy", "Girl"] },
-      { key: "Age", label: "Rango de edad (Age)", options: ["1-5", "6-10", "11-15", "16-20", "21-25", "26-30"] },
-      { key: "Education Level", label: "Nivel educativo (Education Level)", options: ["School", "College", "University"] },
-      { key: "Institution Type", label: "Tipo de institución (Institution Type)", options: ["Government", "Non Government"] },
-      { key: "IT Student", label: "Estudiante de TI (IT Student)", options: ["No", "Yes"] },
-      { key: "Location", label: "Ubicación / Ciudad (Location)", options: ["No", "Yes"] },
-      { key: "Load-shedding", label: "Cortes eléctricos (Load-shedding)", options: ["Low", "High"] },
-      { key: "Financial Condition", label: "Condición financiera (Financial Condition)", options: ["Poor", "Mid", "Rich"] },
-      { key: "Internet Type", label: "Tipo de internet (Internet Type)", options: ["Mobile Data", "Wifi"] },
-      { key: "Network Type", label: "Tipo de red (Network Type)", options: ["2G", "3G", "4G"] },
-      { key: "Class Duration", label: "Duración de clase (Class Duration)", options: ["0", "1-3", "3-6"] },
-      { key: "Self Lms", label: "Autoaprendizaje / LMS propio (Self Lms)", options: ["No", "Yes"] },
-      { key: "Device", label: "Dispositivo (Device)", options: ["Computer", "Mobile", "Tab"] }
+      { key: "Gender", label: "Género", options: [{ v: "Boy", t: "Masculino (Chico)" }, { v: "Girl", t: "Femenino (Chica)" }] },
+      { key: "Age", label: "Rango de edad", options: [{ v: "1-5", t: "1 a 5 años" }, { v: "6-10", t: "6 a 10 años" }, { v: "11-15", t: "11 a 15 años" }, { v: "16-20", t: "16 a 20 años" }, { v: "21-25", t: "21 a 25 años" }, { v: "26-30", t: "26 a 30 años" }] },
+      { key: "Education Level", label: "Nivel educativo", options: [{ v: "School", t: "Escuela" }, { v: "College", t: "Colegio / Preuniversitario" }, { v: "University", t: "Universidad" }] },
+      { key: "Institution Type", label: "Tipo de institución", options: [{ v: "Government", t: "Pública (Gubernamental)" }, { v: "Non Government", t: "Privada (No gubernamental)" }] },
+      { key: "IT Student", label: "Estudiante de Tecnología / TI", options: [{ v: "No", t: "No" }, { v: "Yes", t: "Sí" }] },
+      { key: "Location", label: "Vive en zona urbana / ciudad", options: [{ v: "No", t: "No" }, { v: "Yes", t: "Sí" }] },
+      { key: "Load-shedding", label: "Frecuencia de cortes eléctricos", options: [{ v: "Low", t: "Baja" }, { v: "High", t: "Alta" }] },
+      { key: "Financial Condition", label: "Condición financiera", options: [{ v: "Poor", t: "Baja" }, { v: "Mid", t: "Media" }, { v: "Rich", t: "Alta" }] },
+      { key: "Internet Type", label: "Tipo de conexión a internet", options: [{ v: "Mobile Data", t: "Datos móviles" }, { v: "Wifi", t: "Wi-Fi" }] },
+      { key: "Network Type", label: "Tipo de red móvil", options: [{ v: "2G", t: "2G" }, { v: "3G", t: "3G" }, { v: "4G", t: "4G" }] },
+      { key: "Class Duration", label: "Duración diaria de clases", options: [{ v: "0", t: "0 horas" }, { v: "1-3", t: "1 a 3 horas" }, { v: "3-6", t: "3 a 6 horas" }] },
+      { key: "Self Lms", label: "Usa plataforma educativa propia (LMS)", options: [{ v: "No", t: "No" }, { v: "Yes", t: "Sí" }] },
+      { key: "Device", label: "Dispositivo principal", options: [{ v: "Computer", t: "Computadora" }, { v: "Mobile", t: "Teléfono móvil" }, { v: "Tab", t: "Tableta" }] }
     ];
+
+    const TRADUCCION_NIVEL = {
+      "Low": "Bajo",
+      "Moderate": "Moderado",
+      "High": "Alto"
+    };
 
     const formEl = document.getElementById("formAdaptabilidad");
     PREGUNTAS.forEach((p) => {
       const div = document.createElement("div");
       div.className = "field";
-      const opts = p.options.map((o) => `<option value="${o}">${o}</option>`).join("");
+      const opts = p.options.map((o) => `<option value="${o.v}">${o.t}</option>`).join("");
       div.innerHTML = `<label for="${p.key}">${p.label}</label><select id="${p.key}" name="${p.key}">${opts}</select>`;
       formEl.appendChild(div);
     });
@@ -283,12 +289,16 @@
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || "Error al evaluar");
 
+        const nivelEsp = TRADUCCION_NIVEL[data.nivel] || data.nivel;
         const probsHtml = data.probabilidades
-          .map((item) => `<div>• ${item.nivel}: ${(item.prob * 100).toFixed(2)}%</div>`)
+          .map((item) => {
+            const nombreEsp = TRADUCCION_NIVEL[item.nivel] || item.nivel;
+            return `<div>• ${nombreEsp}: ${(item.prob * 100).toFixed(2)}%</div>`;
+          })
           .join("");
 
         resBox.innerHTML = `
-          <strong>Nivel predicho:</strong> ${data.nivel}
+          <strong>Nivel predicho:</strong> ${nivelEsp}
           <div class="prob-row">${probsHtml}</div>
         `;
       } catch (err) {
